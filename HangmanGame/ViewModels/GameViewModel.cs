@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using HangmanGame.Models;
+using HangmanGame.Services;
 
 namespace HangmanGame.ViewModels
 {
@@ -17,6 +18,9 @@ namespace HangmanGame.ViewModels
             get => _currentUser;
             set { _currentUser = value; OnPropertyChanged(); }
         }
+
+        private readonly GameService _gameService = new GameService();
+        private string _currentCategory = "Cars"; 
 
         private readonly Dictionary<string, List<string>> _wordBank = new()
         {
@@ -80,12 +84,14 @@ namespace HangmanGame.ViewModels
 
         public ObservableCollection<LetterModel> Keyboard { get; set; }
         public ICommand GuessLetterCommand { get; }
+        public ICommand SaveGameCommand { get; }
 
         public GameViewModel(User selectedUser)
         {
             CurrentUser = selectedUser;
             Keyboard = new ObservableCollection<LetterModel>();
             GuessLetterCommand = new RelayCommand(ExecuteGuessLetter);
+            SaveGameCommand = new RelayCommand(ExecuteSaveGame);
 
             // Configurăm timer-ul să bată la fiecare 1 secundă
             _timer = new DispatcherTimer();
@@ -108,6 +114,7 @@ namespace HangmanGame.ViewModels
 
         private void StartNewLevel(string category)
         {
+            _currentCategory = category;
             var random = new Random();
             var words = _wordBank[category];
             _hiddenWord = words[random.Next(words.Count)];
@@ -190,6 +197,31 @@ namespace HangmanGame.ViewModels
             MessageBox.Show($"{motiv} Cuvântul era: {_hiddenWord}.\nNivelurile tale s-au resetat.", "Game Over");
             CurrentLevel = 1; // Resetează nivelurile la 1 dacă pierde [cite: 86, 87]
             StartNewLevel("Cars");
+        }
+
+        private void ExecuteSaveGame(object? parameter)
+        {
+            // Oprim temporar timer-ul cât timp jucătorul salvează
+            _timer.Stop();
+
+            var newSave = new GameSave
+            {
+                UserName = CurrentUser.Name,
+                Category = _currentCategory,
+                HiddenWord = _hiddenWord,
+                DisplayedWord = DisplayedWord,
+                Mistakes = Mistakes,
+                TimeLeft = TimeLeft,
+                CurrentLevel = CurrentLevel,
+                SaveDate = DateTime.Now
+            };
+
+            _gameService.SaveCurrentGame(newSave);
+
+            MessageBox.Show("Jocul a fost salvat cu succes!", "Salvare", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            // Repornim timer-ul după salvare
+            _timer.Start();
         }
     }
 }

@@ -45,7 +45,7 @@
 			<MenuItem Header="File">
 				<MenuItem Header="New Game"/>
 				<MenuItem Header="Open Game"/>
-				<MenuItem Header="Save Game"/>
+				<MenuItem Header="Save Game" Command="{Binding SaveGameCommand}"/>
 				<MenuItem Header="Statistics"/>
 				<Separator/>
 				<MenuItem Header="Cancel"/>
