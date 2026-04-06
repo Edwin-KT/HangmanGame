@@ -62,32 +62,42 @@
 
 		<Grid Margin="20">
 			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="*"/>
-				<ColumnDefinition Width="1.5*"/>
+				<ColumnDefinition Width="1.2*"/>
+				<ColumnDefinition Width="2*"/>
 			</Grid.ColumnDefinitions>
 
-			<StackPanel Grid.Column="0">
+			<StackPanel Grid.Column="0" Margin="0,0,20,0">
+
 				<StackPanel Orientation="Horizontal" Margin="0,0,0,30">
 					<Border BorderBrush="#2D2D2D" BorderThickness="2" CornerRadius="10" Background="White" Padding="5">
 						<Image Source="{Binding CurrentUser.ProfileImagePath}" Width="60" Height="60"/>
 					</Border>
 					<TextBlock Text="{Binding CurrentUser.Name}" FontSize="24" FontWeight="Bold" 
-                               VerticalAlignment="Center" Margin="15,0,0,0" Foreground="#2D2D2D"/>
+					           VerticalAlignment="Center" Margin="15,0,0,0" Foreground="#2D2D2D" 
+					           TextTrimming="CharacterEllipsis" MaxWidth="200"/>
 				</StackPanel>
 
-				<Border BorderBrush="#2D2D2D" BorderThickness="3" CornerRadius="15" Background="White" Height="400" Width="300" HorizontalAlignment="Left" ClipToBounds="True">
+				<Border BorderBrush="#2D2D2D" BorderThickness="3" CornerRadius="15" Background="White" Height="350" Width="300" HorizontalAlignment="Left" ClipToBounds="True">
 					<Grid>
 						<Image Source="{Binding HangmanImagePath}" Stretch="Uniform"/>
 
 						<Image Source="{Binding CurrentUser.ProfileImagePath}" 
-                               Visibility="{Binding IsAvatarVisible, Converter={StaticResource BoolToVis}}"
-                               Width="70" Height="70" 
-                               Margin="152,121,72,203"/>
+						       Visibility="{Binding IsAvatarVisible, Converter={StaticResource BoolToVis}}"
+						       Width="65" Height="65" 
+						       HorizontalAlignment="Left" VerticalAlignment="Top"
+						       Margin="147,101,0,0"/>
 					</Grid>
 				</Border>
 			</StackPanel>
 
 			<StackPanel Grid.Column="1" VerticalAlignment="Center">
+
+				<Border BorderBrush="#2D2D2D" BorderThickness="2" CornerRadius="10" Background="White" Padding="20,10" Margin="0,0,0,30" HorizontalAlignment="Center">
+					<StackPanel Orientation="Horizontal">
+						<TextBlock Text="{Binding CurrentLevel, StringFormat='Nivel: {0}/3'}" FontSize="22" FontWeight="Bold" Foreground="#06D6A0" Margin="0,0,30,0"/>
+						<TextBlock Text="{Binding TimeLeft, StringFormat='Timp rămas: {0}s'}" FontSize="22" FontWeight="Bold" Foreground="#EF476F"/>
+					</StackPanel>
+				</Border>
 
 				<TextBlock Text="{Binding DisplayedWord}" FontSize="60" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10"/>
 
@@ -102,10 +112,10 @@
 					<ItemsControl.ItemTemplate>
 						<DataTemplate>
 							<Button Content="{Binding Character}" 
-                                    Command="{Binding DataContext.GuessLetterCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" 
-                                    CommandParameter="{Binding}"
-                                    IsEnabled="{Binding IsEnabled}"
-                                    Style="{StaticResource LetterButton}"/>
+							        Command="{Binding DataContext.GuessLetterCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" 
+							        CommandParameter="{Binding}"
+							        IsEnabled="{Binding IsEnabled}"
+							        Style="{StaticResource LetterButton}"/>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
 				</ItemsControl>
