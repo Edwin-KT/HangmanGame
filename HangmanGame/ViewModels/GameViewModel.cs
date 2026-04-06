@@ -64,8 +64,7 @@ namespace HangmanGame.ViewModels
             set { _isAvatarVisible = value; OnPropertyChanged(); }
         }
 
-        // --- NOU: Nivelul și Timpul ---
-        private int _currentLevel = 1; // Începem de la nivelul 1
+        private int _currentLevel = 1;
         public int CurrentLevel
         {
             get => _currentLevel;
@@ -85,6 +84,7 @@ namespace HangmanGame.ViewModels
         public ObservableCollection<LetterModel> Keyboard { get; set; }
         public ICommand GuessLetterCommand { get; }
         public ICommand SaveGameCommand { get; }
+        public ICommand OpenGameCommand { get; }
 
         public GameViewModel(User selectedUser)
         {
@@ -92,6 +92,7 @@ namespace HangmanGame.ViewModels
             Keyboard = new ObservableCollection<LetterModel>();
             GuessLetterCommand = new RelayCommand(ExecuteGuessLetter);
             SaveGameCommand = new RelayCommand(ExecuteSaveGame);
+            OpenGameCommand = new RelayCommand(ExecuteOpenGame);
 
             // Configurăm timer-ul să bată la fiecare 1 secundă
             _timer = new DispatcherTimer();
@@ -103,12 +104,12 @@ namespace HangmanGame.ViewModels
 
         private void Timer_Tick(object? sender, EventArgs e)
         {
-            TimeLeft--; // Scădem o secundă
+            TimeLeft--; 
 
             if (TimeLeft <= 0)
             {
                 _timer.Stop();
-                HandleLoss("Timpul a expirat!"); // Pierzi dacă ajungi la 0
+                HandleLoss("Timpul a expirat!"); 
             }
         }
 
@@ -123,7 +124,6 @@ namespace HangmanGame.ViewModels
             Mistakes = 0;
             ResetKeyboard();
 
-            // Setăm timpul la 30 de secunde conform cerinței și pornim cronometrul
             TimeLeft = 30;
             _timer.Start();
         }
@@ -155,7 +155,6 @@ namespace HangmanGame.ViewModels
                     }
                     DisplayedWord = string.Join(" ", displayChars);
 
-                    // VERIFICĂM DACĂ A CÂȘTIGAT CUVÂNTUL
                     if (!DisplayedWord.Contains("_"))
                     {
                         _timer.Stop();
@@ -165,7 +164,6 @@ namespace HangmanGame.ViewModels
                 else
                 {
                     Mistakes++;
-                    // VERIFICĂM DACĂ A PIERDUT (presupunem 6 greșeli maxime)
                     if (Mistakes >= 6)
                     {
                         _timer.Stop();
@@ -180,8 +178,7 @@ namespace HangmanGame.ViewModels
             if (CurrentLevel == 3)
             {
                 MessageBox.Show("FELICITĂRI! Ai ghicit 3 cuvinte la rând și ai câștigat jocul!", "Victorie!");
-                CurrentLevel = 1; // Resetăm pentru un joc nou
-                // Mai târziu aici vom salva statistica de "Joc Câștigat"
+                CurrentLevel = 1; 
             }
             else
             {
@@ -189,19 +186,18 @@ namespace HangmanGame.ViewModels
                 CurrentLevel++;
             }
 
-            StartNewLevel("Cars"); // Trecem la următorul cuvânt
+            StartNewLevel("Cars"); 
         }
 
         private void HandleLoss(string motiv)
         {
             MessageBox.Show($"{motiv} Cuvântul era: {_hiddenWord}.\nNivelurile tale s-au resetat.", "Game Over");
-            CurrentLevel = 1; // Resetează nivelurile la 1 dacă pierde [cite: 86, 87]
+            CurrentLevel = 1;
             StartNewLevel("Cars");
         }
 
         private void ExecuteSaveGame(object? parameter)
         {
-            // Oprim temporar timer-ul cât timp jucătorul salvează
             _timer.Stop();
 
             var newSave = new GameSave
@@ -220,8 +216,52 @@ namespace HangmanGame.ViewModels
 
             MessageBox.Show("Jocul a fost salvat cu succes!", "Salvare", MessageBoxButton.OK, MessageBoxImage.Information);
 
-            // Repornim timer-ul după salvare
             _timer.Start();
+        }
+
+        private void ExecuteOpenGame(object? parameter)
+        {
+            _timer.Stop(); 
+
+            var userSaves = _gameService.LoadSavesForUser(CurrentUser.Name);
+
+            if (userSaves.Count == 0)
+            {
+                MessageBox.Show("Nu ai niciun joc salvat încă!", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                _timer.Start();
+                return;
+            }
+
+            var loadWindow = new LoadGameWindow();
+
+            loadWindow.SavesListBox.ItemsSource = userSaves;
+
+            loadWindow.Owner = Application.Current.MainWindow;
+
+            if (loadWindow.ShowDialog() == true && loadWindow.SelectedGameSave != null)
+            {
+                var save = loadWindow.SelectedGameSave;
+
+                _currentCategory = save.Category;
+                _hiddenWord = save.HiddenWord;
+                DisplayedWord = save.DisplayedWord;
+                Mistakes = save.Mistakes;
+                TimeLeft = save.TimeLeft;
+                CurrentLevel = save.CurrentLevel;
+
+                ResetKeyboard();
+                foreach (var letter in Keyboard)
+                {
+                    if (DisplayedWord.Contains(letter.Character))
+                    {
+                        letter.IsEnabled = false;
+                    }
+                }
+
+                MessageBox.Show("Jocul a fost încărcat cu succes!", "Succes");
+            }
+
+            _timer.Start(); 
         }
     }
 }
