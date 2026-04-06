@@ -138,7 +138,11 @@ namespace HangmanGame.ViewModels
         {
             if (SelectedUser != null)
             {
-                MessageBox.Show($"Jocul începe pentru {SelectedUser.Name}!", "Play");
+                var gameWindow = new GameWindow(SelectedUser);
+
+                gameWindow.Show();
+
+                Application.Current.MainWindow.Close();
             }
         }
 
