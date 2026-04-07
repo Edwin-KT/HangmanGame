@@ -92,6 +92,7 @@ namespace HangmanGame.ViewModels
         public ICommand SaveGameCommand { get; }
         public ICommand OpenGameCommand { get; }
         public ICommand StatisticsCommand { get; }
+        public ICommand GuessLetterFromKeyCommand { get; }
 
         public GameViewModel(User selectedUser)
         {
@@ -105,6 +106,7 @@ namespace HangmanGame.ViewModels
             AboutCommand = new RelayCommand(ExecuteAbout);
             ChangeCategoryCommand = new RelayCommand(ExecuteChangeCategory);
             StatisticsCommand = new RelayCommand(ExecuteStatistics);
+            GuessLetterFromKeyCommand = new RelayCommand(ExecuteGuessLetterFromKey);
 
             _timer = new DispatcherTimer();
             _timer.Interval = TimeSpan.FromSeconds(1);
@@ -306,13 +308,34 @@ namespace HangmanGame.ViewModels
             _timer.Start();
         }
 
-        private void ExecuteAbout(object? parameter) { MessageBox.Show("Nume Student: Edwin Kantor-Tomcek\nGrupa: 10LF242\nSpecializarea: Informatica", "About - Help", MessageBoxButton.OK, MessageBoxImage.Information); }
+        private void ExecuteAbout(object? parameter)
+        {
+            _timer.Stop();
+            MessageBox.Show("Nume Student: Edwin Kantor-Tomcek\nGrupa: 10LF242\nSpecializarea: Informatica", "About - Help", MessageBoxButton.OK, MessageBoxImage.Information);
+            _timer.Start(); 
+        }
+
         private void ExecuteChangeCategory(object? parameter)
         {
             if (parameter is string category)
             {
                 CurrentLevel = 1;
                 StartNewLevel(category);
+            }
+        }
+
+        private void ExecuteGuessLetterFromKey(object? parameter)
+        {
+            if (parameter is string keyStr && keyStr.Length > 0)
+            {
+                char upperChar = char.ToUpper(keyStr[0]);
+
+                var letterModel = Keyboard.FirstOrDefault(k => k.Character == upperChar);
+
+                if (letterModel != null && letterModel.IsEnabled)
+                {
+                    ExecuteGuessLetter(letterModel);
+                }
             }
         }
     }

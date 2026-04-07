@@ -1,6 +1,7 @@
-﻿using System.Windows;
-using HangmanGame.Models;
+﻿using HangmanGame.Models;
 using HangmanGame.ViewModels;
+using System.Windows;
+using System.Windows.Input;
 
 namespace HangmanGame
 {
@@ -11,6 +12,21 @@ namespace HangmanGame
             InitializeComponent();
 
             DataContext = new GameViewModel(selectedUser);
+
+            this.Focus();
+        }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key >= Key.A && e.Key <= Key.Z)
+            {
+                var vm = DataContext as ViewModels.GameViewModel;
+
+                if (vm != null)
+                {
+                    vm.GuessLetterFromKeyCommand.Execute(e.Key.ToString());
+                }
+            }
         }
     }
 }
