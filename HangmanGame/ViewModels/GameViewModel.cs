@@ -20,13 +20,16 @@ namespace HangmanGame.ViewModels
         }
 
         private readonly GameService _gameService = new GameService();
-        private string _currentCategory = "Cars"; 
+        private string _currentCategory = "Cars";
+        public bool IsAllCategoriesChecked => _currentCategory == "All categories";
+        public bool IsCarsChecked => _currentCategory == "Cars";
+        public bool IsMoviesChecked => _currentCategory == "Movies";
+        public bool IsCitiesChecked => _currentCategory == "Cities";
+        public bool IsRiversChecked => _currentCategory == "Rivers";
 
-        private readonly Dictionary<string, List<string>> _wordBank = new()
-        {
-            { "Cars", new List<string> { "BMW", "AUDI", "PORSCHE", "FERRARI", "MAZDA" } },
-            { "Movies", new List<string> { "TITANIC", "AVATAR", "INCEPTION", "GLADIATOR" } }
-        };
+        private readonly WordService _wordService = new WordService();
+        private Dictionary<string, List<string>> _wordBank;
+
 
         private string _hiddenWord = string.Empty;
 
@@ -102,12 +105,30 @@ namespace HangmanGame.ViewModels
             AboutCommand = new RelayCommand(ExecuteAbout);
             ChangeCategoryCommand = new RelayCommand(ExecuteChangeCategory);
 
-            // Configurăm timer-ul să bată la fiecare 1 secundă
             _timer = new DispatcherTimer();
             _timer.Interval = TimeSpan.FromSeconds(1);
             _timer.Tick += Timer_Tick;
 
-            StartNewLevel("Cars");
+            _wordBank = _wordService.LoadWordBank();
+
+            if (_wordBank.Count == 0)
+            {
+                _wordBank.Add("Cars", new List<string> { "BMW", "AUDI", "PORSCHE", "FERRARI", "MAZDA" });
+                _wordBank.Add("Movies", new List<string> { "TITANIC", "AVATAR", "INCEPTION", "GLADIATOR" });
+                _wordBank.Add("Cities", new List<string> { "LONDRA", "PARIS", "TOKYO", "BUCURESTI", "ROMA" });
+                _wordBank.Add("Rivers", new List<string> { "AMAZON", "NIL", "DUNAREA", "TAMISA", "VOLGA" });
+            }
+
+            if (_wordBank.ContainsKey("Cars"))
+            {
+                _currentCategory = "Cars";
+            }
+            else
+            {
+                _currentCategory = _wordBank.Keys.First();
+            }
+
+            StartNewLevel(_currentCategory);
         }
 
         private void Timer_Tick(object? sender, EventArgs e)
@@ -124,6 +145,13 @@ namespace HangmanGame.ViewModels
         private void StartNewLevel(string category)
         {
             _currentCategory = category;
+
+            OnPropertyChanged(nameof(IsAllCategoriesChecked));
+            OnPropertyChanged(nameof(IsCarsChecked));
+            OnPropertyChanged(nameof(IsMoviesChecked));
+            OnPropertyChanged(nameof(IsCitiesChecked));
+            OnPropertyChanged(nameof(IsRiversChecked));
+
             var random = new Random();
             List<string> words;
 
@@ -200,7 +228,7 @@ namespace HangmanGame.ViewModels
             if (CurrentLevel == 3)
             {
                 MessageBox.Show("FELICITĂRI! Ai ghicit 3 cuvinte la rând și ai câștigat jocul!", "Victorie!");
-                CurrentLevel = 1; 
+                CurrentLevel = 1;
             }
             else
             {
@@ -208,14 +236,15 @@ namespace HangmanGame.ViewModels
                 CurrentLevel++;
             }
 
-            StartNewLevel("Cars"); 
+            StartNewLevel(_currentCategory);
         }
 
         private void HandleLoss(string motiv)
         {
             MessageBox.Show($"{motiv} Cuvântul era: {_hiddenWord}.\nNivelurile tale s-au resetat.", "Game Over");
             CurrentLevel = 1;
-            StartNewLevel("Cars");
+
+            StartNewLevel(_currentCategory);
         }
 
         private void ExecuteSaveGame(object? parameter)
@@ -288,7 +317,7 @@ namespace HangmanGame.ViewModels
 
         private void ExecuteNewGame(object? parameter)
         {
-            CurrentLevel = 1; // La deschiderea unui joc nou, nivelurile repornesc de la zero 
+            CurrentLevel = 1; 
             StartNewLevel(_currentCategory);
         }
 
@@ -300,7 +329,6 @@ namespace HangmanGame.ViewModels
             Application.Current.MainWindow = loginWindow;
             loginWindow.Show();
 
-            // Închidem fereastra curentă (GameWindow)
             foreach (Window window in Application.Current.Windows)
             {
                 if (window is GameWindow)

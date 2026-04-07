@@ -1,7 +1,7 @@
 ﻿<Window x:Class="HangmanGame.GameWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Spânzurătoarea - La Joacă!" Height="700" Width="1000"
+        Title="Spânzurătoarea - La Joacă!" Height="720" Width="1080"
         Background="#FFF9E6" FontFamily="Comic Sans MS">
 
 	<Window.Resources>
@@ -50,12 +50,14 @@
         <Separator/>
         <MenuItem Header="Cancel" Command="{Binding CancelCommand}"/>
     </MenuItem>
-    <MenuItem Header="Categories">
-        <MenuItem Header="All categories" Command="{Binding ChangeCategoryCommand}" CommandParameter="All categories" IsCheckable="True"/>
-        <MenuItem Header="Cars" Command="{Binding ChangeCategoryCommand}" CommandParameter="Cars" IsCheckable="True"/>
-        <MenuItem Header="Movies" Command="{Binding ChangeCategoryCommand}" CommandParameter="Movies" IsCheckable="True"/>
-    </MenuItem>
-    <MenuItem Header="Help">
+		<MenuItem Header="Categories">
+			<MenuItem Header="All categories" Command="{Binding ChangeCategoryCommand}" CommandParameter="All categories" IsCheckable="True" IsChecked="{Binding IsAllCategoriesChecked, Mode=OneWay}"/>
+			<MenuItem Header="Cars" Command="{Binding ChangeCategoryCommand}" CommandParameter="Cars" IsCheckable="True" IsChecked="{Binding IsCarsChecked, Mode=OneWay}"/>
+			<MenuItem Header="Movies" Command="{Binding ChangeCategoryCommand}" CommandParameter="Movies" IsCheckable="True" IsChecked="{Binding IsMoviesChecked, Mode=OneWay}"/>
+			<MenuItem Header="Cities" Command="{Binding ChangeCategoryCommand}" CommandParameter="Cities" IsCheckable="True" IsChecked="{Binding IsCitiesChecked, Mode=OneWay}"/>
+			<MenuItem Header="Rivers" Command="{Binding ChangeCategoryCommand}" CommandParameter="Rivers" IsCheckable="True" IsChecked="{Binding IsRiversChecked, Mode=OneWay}"/>
+		</MenuItem>
+			<MenuItem Header="Help">
         <MenuItem Header="About" Command="{Binding AboutCommand}"/>
     </MenuItem>
 </Menu>
