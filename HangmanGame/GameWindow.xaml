@@ -42,23 +42,23 @@
 
 	<DockPanel>
 		<Menu DockPanel.Dock="Top" Background="#FFD166" FontSize="16" BorderBrush="#2D2D2D" BorderThickness="0,0,0,3" Padding="5">
-			<MenuItem Header="File">
-				<MenuItem Header="New Game"/>
-				<MenuItem Header="Open Game" Command="{Binding OpenGameCommand}"/>
-				<MenuItem Header="Save Game" Command="{Binding SaveGameCommand}"/>
-				<MenuItem Header="Statistics"/>
-				<Separator/>
-				<MenuItem Header="Cancel"/>
-			</MenuItem>
-			<MenuItem Header="Categories">
-				<MenuItem Header="All categories" IsCheckable="True" IsChecked="True"/>
-				<MenuItem Header="Cars" IsCheckable="True"/>
-				<MenuItem Header="Movies" IsCheckable="True"/>
-			</MenuItem>
-			<MenuItem Header="Help">
-				<MenuItem Header="About"/>
-			</MenuItem>
-		</Menu>
+    <MenuItem Header="File">
+        <MenuItem Header="New Game" Command="{Binding NewGameCommand}"/>
+        <MenuItem Header="Open Game" Command="{Binding OpenGameCommand}"/>
+        <MenuItem Header="Save Game" Command="{Binding SaveGameCommand}"/>
+        <MenuItem Header="Statistics"/>
+        <Separator/>
+        <MenuItem Header="Cancel" Command="{Binding CancelCommand}"/>
+    </MenuItem>
+    <MenuItem Header="Categories">
+        <MenuItem Header="All categories" Command="{Binding ChangeCategoryCommand}" CommandParameter="All categories" IsCheckable="True"/>
+        <MenuItem Header="Cars" Command="{Binding ChangeCategoryCommand}" CommandParameter="Cars" IsCheckable="True"/>
+        <MenuItem Header="Movies" Command="{Binding ChangeCategoryCommand}" CommandParameter="Movies" IsCheckable="True"/>
+    </MenuItem>
+    <MenuItem Header="Help">
+        <MenuItem Header="About" Command="{Binding AboutCommand}"/>
+    </MenuItem>
+</Menu>
 
 		<Grid Margin="20">
 			<Grid.ColumnDefinitions>

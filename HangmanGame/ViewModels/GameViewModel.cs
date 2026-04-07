@@ -83,6 +83,10 @@ namespace HangmanGame.ViewModels
 
         public ObservableCollection<LetterModel> Keyboard { get; set; }
         public ICommand GuessLetterCommand { get; }
+        public ICommand NewGameCommand { get; }
+        public ICommand CancelCommand { get; }
+        public ICommand AboutCommand { get; }
+        public ICommand ChangeCategoryCommand { get; }
         public ICommand SaveGameCommand { get; }
         public ICommand OpenGameCommand { get; }
 
@@ -93,6 +97,10 @@ namespace HangmanGame.ViewModels
             GuessLetterCommand = new RelayCommand(ExecuteGuessLetter);
             SaveGameCommand = new RelayCommand(ExecuteSaveGame);
             OpenGameCommand = new RelayCommand(ExecuteOpenGame);
+            NewGameCommand = new RelayCommand(ExecuteNewGame);
+            CancelCommand = new RelayCommand(ExecuteCancel);
+            AboutCommand = new RelayCommand(ExecuteAbout);
+            ChangeCategoryCommand = new RelayCommand(ExecuteChangeCategory);
 
             // Configurăm timer-ul să bată la fiecare 1 secundă
             _timer = new DispatcherTimer();
@@ -117,7 +125,21 @@ namespace HangmanGame.ViewModels
         {
             _currentCategory = category;
             var random = new Random();
-            var words = _wordBank[category];
+            List<string> words;
+
+            if (category == "All categories")
+            {
+                words = _wordBank.Values.SelectMany(x => x).ToList();
+            }
+            else if (_wordBank.ContainsKey(category))
+            {
+                words = _wordBank[category];
+            }
+            else
+            {
+                words = new List<string> { "DEFAULT" }; 
+            }
+
             _hiddenWord = words[random.Next(words.Count)];
 
             DisplayedWord = string.Join(" ", _hiddenWord.Select(c => "_"));
@@ -262,6 +284,45 @@ namespace HangmanGame.ViewModels
             }
 
             _timer.Start(); 
+        }
+
+        private void ExecuteNewGame(object? parameter)
+        {
+            CurrentLevel = 1; // La deschiderea unui joc nou, nivelurile repornesc de la zero 
+            StartNewLevel(_currentCategory);
+        }
+
+        private void ExecuteCancel(object? parameter)
+        {
+            _timer.Stop();
+
+            var loginWindow = new MainWindow();
+            Application.Current.MainWindow = loginWindow;
+            loginWindow.Show();
+
+            // Închidem fereastra curentă (GameWindow)
+            foreach (Window window in Application.Current.Windows)
+            {
+                if (window is GameWindow)
+                {
+                    window.Close();
+                    break;
+                }
+            }
+        }
+
+        private void ExecuteAbout(object? parameter)
+        {
+            MessageBox.Show("Nume Student: Edwin Kantor-Tomcek\nGrupa: 10LF242\nSpecializarea: Informatica", "About - Help", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void ExecuteChangeCategory(object? parameter)
+        {
+            if (parameter is string category)
+            {
+                CurrentLevel = 1; // La schimbarea categoriei, nivelurile repornesc 
+                StartNewLevel(category);
+            }
         }
     }
 }
