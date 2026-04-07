@@ -20,6 +20,9 @@ namespace HangmanGame.ViewModels
         }
 
         private readonly GameService _gameService = new GameService();
+        private readonly StatisticsService _statisticsService = new StatisticsService();
+        private readonly WordService _wordService = new WordService();
+
         private string _currentCategory = "Cars";
         public bool IsAllCategoriesChecked => _currentCategory == "All categories";
         public bool IsCarsChecked => _currentCategory == "Cars";
@@ -27,10 +30,7 @@ namespace HangmanGame.ViewModels
         public bool IsCitiesChecked => _currentCategory == "Cities";
         public bool IsRiversChecked => _currentCategory == "Rivers";
 
-        private readonly WordService _wordService = new WordService();
         private Dictionary<string, List<string>> _wordBank;
-
-
         private string _hiddenWord = string.Empty;
 
         private string _displayedWord = string.Empty;
@@ -82,7 +82,6 @@ namespace HangmanGame.ViewModels
         }
 
         private DispatcherTimer _timer;
-        // ------------------------------
 
         public ObservableCollection<LetterModel> Keyboard { get; set; }
         public ICommand GuessLetterCommand { get; }
@@ -92,6 +91,7 @@ namespace HangmanGame.ViewModels
         public ICommand ChangeCategoryCommand { get; }
         public ICommand SaveGameCommand { get; }
         public ICommand OpenGameCommand { get; }
+        public ICommand StatisticsCommand { get; }
 
         public GameViewModel(User selectedUser)
         {
@@ -104,13 +104,13 @@ namespace HangmanGame.ViewModels
             CancelCommand = new RelayCommand(ExecuteCancel);
             AboutCommand = new RelayCommand(ExecuteAbout);
             ChangeCategoryCommand = new RelayCommand(ExecuteChangeCategory);
+            StatisticsCommand = new RelayCommand(ExecuteStatistics);
 
             _timer = new DispatcherTimer();
             _timer.Interval = TimeSpan.FromSeconds(1);
             _timer.Tick += Timer_Tick;
 
             _wordBank = _wordService.LoadWordBank();
-
             if (_wordBank.Count == 0)
             {
                 _wordBank.Add("Cars", new List<string> { "BMW", "AUDI", "PORSCHE", "FERRARI", "MAZDA" });
@@ -119,33 +119,23 @@ namespace HangmanGame.ViewModels
                 _wordBank.Add("Rivers", new List<string> { "AMAZON", "NIL", "DUNAREA", "TAMISA", "VOLGA" });
             }
 
-            if (_wordBank.ContainsKey("Cars"))
-            {
-                _currentCategory = "Cars";
-            }
-            else
-            {
-                _currentCategory = _wordBank.Keys.First();
-            }
-
+            _currentCategory = _wordBank.ContainsKey("Cars") ? "Cars" : _wordBank.Keys.First();
             StartNewLevel(_currentCategory);
         }
 
         private void Timer_Tick(object? sender, EventArgs e)
         {
-            TimeLeft--; 
-
+            TimeLeft--;
             if (TimeLeft <= 0)
             {
                 _timer.Stop();
-                HandleLoss("Timpul a expirat!"); 
+                HandleLoss("Timpul a expirat!");
             }
         }
 
         private void StartNewLevel(string category)
         {
             _currentCategory = category;
-
             OnPropertyChanged(nameof(IsAllCategoriesChecked));
             OnPropertyChanged(nameof(IsCarsChecked));
             OnPropertyChanged(nameof(IsMoviesChecked));
@@ -153,23 +143,10 @@ namespace HangmanGame.ViewModels
             OnPropertyChanged(nameof(IsRiversChecked));
 
             var random = new Random();
-            List<string> words;
-
-            if (category == "All categories")
-            {
-                words = _wordBank.Values.SelectMany(x => x).ToList();
-            }
-            else if (_wordBank.ContainsKey(category))
-            {
-                words = _wordBank[category];
-            }
-            else
-            {
-                words = new List<string> { "DEFAULT" }; 
-            }
+            List<string> words = category == "All categories" ? _wordBank.Values.SelectMany(x => x).ToList() :
+                                 _wordBank.ContainsKey(category) ? _wordBank[category] : new List<string> { "DEFAULT" };
 
             _hiddenWord = words[random.Next(words.Count)];
-
             DisplayedWord = string.Join(" ", _hiddenWord.Select(c => "_"));
             Mistakes = 0;
             ResetKeyboard();
@@ -181,10 +158,7 @@ namespace HangmanGame.ViewModels
         private void ResetKeyboard()
         {
             Keyboard.Clear();
-            for (char c = 'A'; c <= 'Z'; c++)
-            {
-                Keyboard.Add(new LetterModel(c));
-            }
+            for (char c = 'A'; c <= 'Z'; c++) Keyboard.Add(new LetterModel(c));
         }
 
         private void ExecuteGuessLetter(object? parameter)
@@ -199,9 +173,7 @@ namespace HangmanGame.ViewModels
                     for (int i = 0; i < _hiddenWord.Length; i++)
                     {
                         if (_hiddenWord[i] == letter.Character)
-                        {
                             displayChars[i] = letter.Character;
-                        }
                     }
                     DisplayedWord = string.Join(" ", displayChars);
 
@@ -227,6 +199,7 @@ namespace HangmanGame.ViewModels
         {
             if (CurrentLevel == 3)
             {
+                _statisticsService.RecordGame(CurrentUser.Name, _currentCategory, true);
                 MessageBox.Show("FELICITĂRI! Ai ghicit 3 cuvinte la rând și ai câștigat jocul!", "Victorie!");
                 CurrentLevel = 1;
             }
@@ -235,22 +208,20 @@ namespace HangmanGame.ViewModels
                 MessageBox.Show($"Bravo! Ai ghicit cuvântul: {_hiddenWord}. Treci la nivelul următor!", "Nivel Complet");
                 CurrentLevel++;
             }
-
             StartNewLevel(_currentCategory);
         }
 
         private void HandleLoss(string motiv)
         {
+            _statisticsService.RecordGame(CurrentUser.Name, _currentCategory, false);
             MessageBox.Show($"{motiv} Cuvântul era: {_hiddenWord}.\nNivelurile tale s-au resetat.", "Game Over");
             CurrentLevel = 1;
-
             StartNewLevel(_currentCategory);
         }
 
         private void ExecuteSaveGame(object? parameter)
         {
             _timer.Stop();
-
             var newSave = new GameSave
             {
                 UserName = CurrentUser.Name,
@@ -260,20 +231,17 @@ namespace HangmanGame.ViewModels
                 Mistakes = Mistakes,
                 TimeLeft = TimeLeft,
                 CurrentLevel = CurrentLevel,
-                SaveDate = DateTime.Now
+                SaveDate = DateTime.Now,
+                PressedLetters = Keyboard.Where(k => !k.IsEnabled).Select(k => k.Character).ToList()
             };
-
             _gameService.SaveCurrentGame(newSave);
-
             MessageBox.Show("Jocul a fost salvat cu succes!", "Salvare", MessageBoxButton.OK, MessageBoxImage.Information);
-
             _timer.Start();
         }
 
         private void ExecuteOpenGame(object? parameter)
         {
-            _timer.Stop(); 
-
+            _timer.Stop();
             var userSaves = _gameService.LoadSavesForUser(CurrentUser.Name);
 
             if (userSaves.Count == 0)
@@ -283,16 +251,12 @@ namespace HangmanGame.ViewModels
                 return;
             }
 
-            var loadWindow = new LoadGameWindow();
+            var loadViewModel = new LoadGameViewModel(new ObservableCollection<GameSave>(userSaves));
+            var loadWindow = new LoadGameWindow { DataContext = loadViewModel, Owner = Application.Current.MainWindow };
 
-            loadWindow.SavesListBox.ItemsSource = userSaves;
-
-            loadWindow.Owner = Application.Current.MainWindow;
-
-            if (loadWindow.ShowDialog() == true && loadWindow.SelectedGameSave != null)
+            if (loadWindow.ShowDialog() == true && loadViewModel.SelectedSave != null)
             {
-                var save = loadWindow.SelectedGameSave;
-
+                var save = loadViewModel.SelectedSave;
                 _currentCategory = save.Category;
                 _hiddenWord = save.HiddenWord;
                 DisplayedWord = save.DisplayedWord;
@@ -303,28 +267,23 @@ namespace HangmanGame.ViewModels
                 ResetKeyboard();
                 foreach (var letter in Keyboard)
                 {
-                    if (DisplayedWord.Contains(letter.Character))
-                    {
+                    if (save.PressedLetters.Contains(letter.Character))
                         letter.IsEnabled = false;
-                    }
                 }
-
                 MessageBox.Show("Jocul a fost încărcat cu succes!", "Succes");
             }
-
-            _timer.Start(); 
+            _timer.Start();
         }
 
         private void ExecuteNewGame(object? parameter)
         {
-            CurrentLevel = 1; 
+            CurrentLevel = 1;
             StartNewLevel(_currentCategory);
         }
 
         private void ExecuteCancel(object? parameter)
         {
             _timer.Stop();
-
             var loginWindow = new MainWindow();
             Application.Current.MainWindow = loginWindow;
             loginWindow.Show();
@@ -339,16 +298,20 @@ namespace HangmanGame.ViewModels
             }
         }
 
-        private void ExecuteAbout(object? parameter)
+        private void ExecuteStatistics(object? parameter)
         {
-            MessageBox.Show("Nume Student: Edwin Kantor-Tomcek\nGrupa: 10LF242\nSpecializarea: Informatica", "About - Help", MessageBoxButton.OK, MessageBoxImage.Information);
+            _timer.Stop();
+            var statsWindow = new StatisticsWindow { Owner = Application.Current.MainWindow };
+            statsWindow.ShowDialog();
+            _timer.Start();
         }
 
+        private void ExecuteAbout(object? parameter) { MessageBox.Show("Nume Student: Edwin Kantor-Tomcek\nGrupa: 10LF242\nSpecializarea: Informatica", "About - Help", MessageBoxButton.OK, MessageBoxImage.Information); }
         private void ExecuteChangeCategory(object? parameter)
         {
             if (parameter is string category)
             {
-                CurrentLevel = 1; // La schimbarea categoriei, nivelurile repornesc 
+                CurrentLevel = 1;
                 StartNewLevel(category);
             }
         }

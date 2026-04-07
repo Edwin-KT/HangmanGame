@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Încarcă un Joc" Height="400" Width="400"
         Background="#FFF9E6" FontFamily="Comic Sans MS"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        x:Name="LoadWindow">
 
 	<Grid Margin="15">
 		<Grid.RowDefinitions>
@@ -16,6 +17,8 @@
 
 		<ListBox x:Name="SavesListBox" Grid.Row="1" Margin="0,0,0,15" 
                   Background="White"
+                  ItemsSource="{Binding Saves}"
+                  SelectedItem="{Binding SelectedSave}"
                   ScrollViewer.VerticalScrollBarVisibility="Auto">
 			<ListBox.ItemTemplate>
 				<DataTemplate>
@@ -23,11 +26,7 @@
 						<TextBlock Text="{Binding SaveDate, StringFormat='Data: {0:dd/MM/yyyy HH:mm}'}" FontWeight="Bold"/>
 						<TextBlock Text="{Binding Category, StringFormat='Categoria: {0}'}"/>
 						<TextBlock>
-							<Run Text="Nivel: "/>
-							<Run Text="{Binding CurrentLevel}"/>
-							<Run Text="/3 | Timp: "/>
-							<Run Text="{Binding TimeLeft}"/>
-							<Run Text="s"/>
+							<Run Text="Nivel: "/><Run Text="{Binding CurrentLevel}"/><Run Text="/3 | Timp: "/><Run Text="{Binding TimeLeft}"/><Run Text="s"/>
 						</TextBlock>
 					</StackPanel>
 				</DataTemplate>
@@ -35,8 +34,8 @@
 		</ListBox>
 
 		<StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
-			<Button Content="ÎNCARCĂ JOCUL" Click="LoadButton_Click" Background="#06D6A0" Foreground="White" FontWeight="Bold" FontSize="16" Padding="10,5" Margin="0,0,10,0" BorderBrush="#2D2D2D" BorderThickness="2"/>
-			<Button Content="Anulare" Click="CancelButton_Click" Background="#EF476F" Foreground="White" FontWeight="Bold" FontSize="16" Padding="10,5" BorderBrush="#2D2D2D" BorderThickness="2"/>
+			<Button Content="ÎNCARCĂ JOCUL" Command="{Binding LoadCommand}" CommandParameter="{Binding ElementName=LoadWindow}" Background="#06D6A0" Foreground="White" FontWeight="Bold" FontSize="16" Padding="10,5" Margin="0,0,10,0" BorderBrush="#2D2D2D" BorderThickness="2"/>
+			<Button Content="Anulare" Command="{Binding CancelCommand}" CommandParameter="{Binding ElementName=LoadWindow}" Background="#EF476F" Foreground="White" FontWeight="Bold" FontSize="16" Padding="10,5" BorderBrush="#2D2D2D" BorderThickness="2"/>
 		</StackPanel>
 	</Grid>
 </Window>

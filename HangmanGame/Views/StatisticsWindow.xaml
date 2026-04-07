@@ -1,0 +1,26 @@
+﻿<Window x:Class="HangmanGame.StatisticsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:viewmodels="clr-namespace:HangmanGame.ViewModels"
+        Title="Statistici" Height="450" Width="600"
+        Background="#FFF9E6" FontFamily="Comic Sans MS"
+        WindowStartupLocation="CenterOwner">
+	<Window.DataContext>
+		<viewmodels:StatisticsViewModel/>
+	</Window.DataContext>
+	<Grid Margin="15">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+		<TextBlock Text="Statistici Utilizatori" FontSize="26" FontWeight="Bold" Foreground="#2D2D2D" HorizontalAlignment="Center" Margin="0,0,0,15"/>
+		<DataGrid Grid.Row="1" ItemsSource="{Binding Statistics}" AutoGenerateColumns="False" IsReadOnly="True" Background="White" BorderBrush="#2D2D2D" BorderThickness="2">
+			<DataGrid.Columns>
+				<DataGridTextColumn Header="Utilizator" Binding="{Binding UserName}" Width="*"/>
+				<DataGridTextColumn Header="Categorie" Binding="{Binding Category}" Width="*"/>
+				<DataGridTextColumn Header="Jocuri Jucate" Binding="{Binding GamesPlayed}" Width="*"/>
+				<DataGridTextColumn Header="Jocuri Câștigate" Binding="{Binding GamesWon}" Width="*"/>
+			</DataGrid.Columns>
+		</DataGrid>
+	</Grid>
+</Window>

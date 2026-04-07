@@ -12,29 +12,31 @@ namespace HangmanGame.Services
 
         private List<GameSave> GetAllSaves()
         {
-            if (!File.Exists(_filePath))
-            {
-                return new List<GameSave>();
-            }
-
+            if (!File.Exists(_filePath)) return new List<GameSave>();
             string json = File.ReadAllText(_filePath);
             return JsonSerializer.Deserialize<List<GameSave>>(json) ?? new List<GameSave>();
         }
 
         public List<GameSave> LoadSavesForUser(string userName)
         {
-            var allSaves = GetAllSaves();
-            return allSaves.Where(s => s.UserName == userName).ToList();
+            return GetAllSaves().Where(s => s.UserName == userName).ToList();
         }
 
         public void SaveCurrentGame(GameSave newSave)
         {
             var allSaves = GetAllSaves();
-            allSaves.Add(newSave); 
-
+            allSaves.Add(newSave);
             var options = new JsonSerializerOptions { WriteIndented = true };
-            string json = JsonSerializer.Serialize(allSaves, options);
-            File.WriteAllText(_filePath, json);
+            File.WriteAllText(_filePath, JsonSerializer.Serialize(allSaves, options));
+        }
+
+        // Fix: Șterge salvările pentru un utilizator
+        public void DeleteSavesForUser(string userName)
+        {
+            var allSaves = GetAllSaves();
+            allSaves.RemoveAll(s => s.UserName == userName);
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            File.WriteAllText(_filePath, JsonSerializer.Serialize(allSaves, options));
         }
     }
 }

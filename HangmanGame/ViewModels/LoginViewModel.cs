@@ -83,6 +83,7 @@ namespace HangmanGame.ViewModels
                 "/Images/avatar4.png",
                 "/Images/avatar5.png",
                 "/Images/avatar6.png",
+                "/Images/avatar7.png",
             };
 
             if (_availableAvatars.Any())
@@ -127,6 +128,12 @@ namespace HangmanGame.ViewModels
                 var result = MessageBox.Show($"Sigur vrei să ștergi utilizatorul {SelectedUser.Name}?", "Confirmare", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (result == MessageBoxResult.Yes)
                 {
+                    var gameService = new GameService();
+                    gameService.DeleteSavesForUser(SelectedUser.Name);
+
+                    var statService = new StatisticsService();
+                    statService.DeleteStatisticsForUser(SelectedUser.Name);
+
                     Users.Remove(SelectedUser);
                     _userService.SaveUsers(Users.ToList());
                     SelectedUser = null;
