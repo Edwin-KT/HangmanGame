@@ -140,12 +140,15 @@ namespace HangmanGame.ViewModels
             {
                 var gameWindow = new GameWindow(SelectedUser);
 
+                var oldWindow = Application.Current.MainWindow;
+
+                Application.Current.MainWindow = gameWindow;
+
                 gameWindow.Show();
 
-                Application.Current.MainWindow.Close();
+                oldWindow?.Close();
             }
         }
-
         private void ExecuteExit(object? parameter)
         {
             Application.Current.Shutdown();
