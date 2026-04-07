@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -8,7 +9,22 @@ namespace HangmanGame.Services
 {
     public class StatisticsService
     {
-        private readonly string _filePath = "statistics.json";
+        private readonly string _dataFolder;
+        private readonly string _filePath;
+
+        public StatisticsService()
+        {
+            _dataFolder = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Data"));
+            _filePath = Path.Combine(_dataFolder, "statistics.json");
+        }
+
+        private void EnsureDirectoryExists()
+        {
+            if (!Directory.Exists(_dataFolder))
+            {
+                Directory.CreateDirectory(_dataFolder);
+            }
+        }
 
         public List<UserStatistics> GetAllStatistics()
         {
@@ -43,6 +59,7 @@ namespace HangmanGame.Services
 
         private void SaveStatistics(List<UserStatistics> stats)
         {
+            EnsureDirectoryExists();
             var options = new JsonSerializerOptions { WriteIndented = true };
             File.WriteAllText(_filePath, JsonSerializer.Serialize(stats, options));
         }
