@@ -8,21 +8,11 @@ namespace HangmanGame.Services
 {
     public class UserService
     {
-        private readonly string _dataFolder;
         private readonly string _filePath;
 
         public UserService()
         {
-            _dataFolder = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Data"));
-            _filePath = Path.Combine(_dataFolder, "users.json");
-        }
-
-        private void EnsureDirectoryExists()
-        {
-            if (!Directory.Exists(_dataFolder))
-            {
-                Directory.CreateDirectory(_dataFolder);
-            }
+            _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "users.json");
         }
 
         public List<User> LoadUsers()
@@ -38,7 +28,6 @@ namespace HangmanGame.Services
 
         public void SaveUsers(List<User> users)
         {
-            EnsureDirectoryExists();
             var options = new JsonSerializerOptions { WriteIndented = true };
             string json = JsonSerializer.Serialize(users, options);
             File.WriteAllText(_filePath, json);
